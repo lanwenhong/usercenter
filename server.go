@@ -43,12 +43,6 @@ func main() {
 	}
 	logger.Newglog(myconf.Scnf.LogDir, myconf.Scnf.LogFile, myconf.Scnf.LogFileErr, lconf)
 
-	/*if v, ok := binding.Validator.Engine().(*validator.Validate); ok {
-		v.RegisterValidation("EmailValidator", util.EmailValidator)
-	}*/
-	//validate := validator.New()
-	//validate.RegisterValidation("EmailValidator", util.EmailValidator)
-
 	ctx := context.Background()
 	if v, ok := binding.Validator.Engine().(*validator.Validate); ok {
 		err := v.RegisterValidation("EmailValidator", util.EmailValidator)

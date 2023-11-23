@@ -69,7 +69,7 @@ func PwdValidator(f validator.FieldLevel) bool {
 	return true
 }
 
-func ProcessErr(u interface{}, err error) string {
+func ValidatErr(u interface{}, err error) string {
 	if err == nil { //如果为nil 说明校验通过
 		return ""
 	}

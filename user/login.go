@@ -30,7 +30,7 @@ func (uch *UserHandler) Login(ctx context.Context) error {
 	if err := uch.C.ShouldBindWith(&ul, binding.Query); err != nil {
 		logger.Warnf(ctx, "login data err: %s", err.Error())
 		//err := respcode.NewUserCenterErr(respcode.ERR, "参数错误")
-		err := respcode.NewUserCenterErr(respcode.ERR, ut.ProcessErr(ul, err))
+		err := respcode.NewUserCenterErr(respcode.ERR, ut.ValidatErr(ul, err))
 		resp := respcode.RespError[string](err.Code, err.Msg, "", "")
 		uch.C.JSON(http.StatusOK, resp)
 		return err
