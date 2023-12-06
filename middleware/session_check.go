@@ -41,6 +41,8 @@ func CheckSession() gin.HandlerFunc {
 				//resp := respcode.RespError[string](respcode.ERR, "session check error", "", "")
 				//c.JSON(http.StatusOK, resp)
 				//return
+			} else {
+				logger.Debugf(ctx, "no need check sid")
 			}
 		} else {
 			logger.Debugf(ctx, "found client cookie: %s", client_cookie)

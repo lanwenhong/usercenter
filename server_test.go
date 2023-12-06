@@ -80,3 +80,27 @@ func TestUserlogin(t *testing.T) {
 	}
 	t.Log(string(v))
 }
+
+func TestGetUser(t *testing.T) {
+	lconf := &logger.Glogconf{
+		RotateMethod: logger.ROTATE_FILE_DAILY,
+		Stdout:       true,
+		Loglevel:     logger.DEBUG,
+		ColorFull:    true,
+	}
+	logger.Newglog("./", "test.log", "test.log.err", lconf)
+
+	req := map[string]string{
+		"userid": "7060864841283604340",
+	}
+	ctx := context.Background()
+	header := map[string]string{}
+	header["Content-Type"] = "application/x-www-form-urlencoded"
+	c := ghttpclient.QfHttpClientNew(ghttpclient.INTER_PROTO_PUSHAPI, "127.0.0.1:8000", false)
+	v, _, err := c.Get(ctx, "uc/v1/user/get_user", 3000, req, header)
+	if err != nil {
+		t.Fatal(err)
+		return
+	}
+	t.Log(string(v))
+}

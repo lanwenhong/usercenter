@@ -24,6 +24,18 @@ func (uch *UserHandler) find(ids []int64, id int64) bool {
 	return false
 }
 
+func (uch *UserHandler) getUserBase(ctx context.Context, id uint64) (map[string]interface{}, error) {
+	user := map[string]interface{}{}
+	db := sruntime.Gsvr.Dbs.OrmPools["usercenter"]
+	ret := db.WithContext(ctx).Table("users").Where("id=?", id).Find(&user)
+	if ret.Error != nil {
+		logger.Warnf(ctx, "query db err: %s", ret.Error.Error())
+		return user, ret.Error
+	}
+	delete(user, "password")
+	return user, nil
+}
+
 func (uch *UserHandler) getUser(ctx context.Context, id uint64) (map[string]interface{}, error) {
 	user := []map[string]interface{}{}
 	db := sruntime.Gsvr.Dbs.OrmPools["usercenter"]
@@ -145,6 +157,9 @@ func UserQuery(c *gin.Context) {
 	case "login":
 		logger.Debugf(ctx, "login")
 		uh.Login(ctx)
+	case "get_user":
+		logger.Debugf(ctx, "get_user")
+		uh.GetUser(ctx)
 	}
 
 }
