@@ -16,12 +16,10 @@ import (
 )
 
 type UserLoginData struct {
-	//Email string `form:"email" binding:"omitempty,max=128,email"`
 	Email string `form:"email" binding:"EmailValidator,max=128" reg_error_info:"邮箱格式错误"`
-	//Email    string `form:"email" binding:"EmailValidator"`
-	Mobile   string `form:"mobile" binding:"omitempty,len=11"`
-	Username string `form:"username" binding:"omitempty,max=128"`
-	Password string `form:"password" binding:"required,min=6,max=10"`
+	Mobile   string `form:"mobile" binding:"omitempty,len=11" reg_error_info:"手机格式错误"`
+	Username string `form:"username" binding:"omitempty,max=128" reg_error_info:"用户名格式错误"`
+	Password string `form:"password" binding:"required,min=6,max=10" reg_error_info:"密码格式错误"`
 }
 
 func (uch *UserHandler) Login(ctx context.Context) error {
