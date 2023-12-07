@@ -1,6 +1,11 @@
 package respcode
 
-import "fmt"
+import (
+	"fmt"
+	"net/http"
+
+	"github.com/gin-gonic/gin"
+)
 
 const (
 	OK           = 0
@@ -95,4 +100,17 @@ func RespSucc[T string | map[string]interface{}](resperr int, data T) map[string
 		"data":    data,
 	}
 	return resp
+}
+
+func RetError[T string | map[string]interface{}](c *gin.Context, errcode int, resperr string, respmsg string, data T) error {
+	err := NewUserCenterErr(errcode, resperr)
+	resp := RespError[T](err.Code, err.Msg, respmsg, data)
+	c.JSON(http.StatusOK, resp)
+	return err
+}
+
+func RetSucc[T string | map[string]interface{}](c *gin.Context, data T) error {
+	resp := RespSucc[T](OK, data)
+	c.JSON(http.StatusOK, resp)
+	return nil
 }

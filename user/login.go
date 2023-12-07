@@ -3,7 +3,6 @@ package user
 import (
 	"context"
 	"fmt"
-	"net/http"
 	"strings"
 	"time"
 	"usercenter/dbmodel"
@@ -20,7 +19,7 @@ type UserLoginData struct {
 	//Email string `form:"email" binding:"omitempty,max=128,email"`
 	Email string `form:"email" binding:"EmailValidator,max=128" reg_error_info:"邮箱格式错误"`
 	//Email    string `form:"email" binding:"EmailValidator"`
-	Mobile   string `form:"mobile" binding:"omitempty,max=11"`
+	Mobile   string `form:"mobile" binding:"omitempty,len=11"`
 	Username string `form:"username" binding:"omitempty,max=128"`
 	Password string `form:"password" binding:"required,min=6,max=10"`
 }
@@ -29,18 +28,11 @@ func (uch *UserHandler) Login(ctx context.Context) error {
 	ul := UserLoginData{}
 	if err := uch.C.ShouldBindWith(&ul, binding.Query); err != nil {
 		logger.Warnf(ctx, "login data err: %s", err.Error())
-		//err := respcode.NewUserCenterErr(respcode.ERR, "参数错误")
-		err := respcode.NewUserCenterErr(respcode.ERR, ut.ValidatErr(ul, err))
-		resp := respcode.RespError[string](err.Code, err.Msg, "", "")
-		uch.C.JSON(http.StatusOK, resp)
-		return err
+		return respcode.RetError[string](uch.C, respcode.ERR, ut.ValidatErr(ul, err), "", "")
 	}
 	if ul.Email == "" && ul.Mobile == "" && ul.Username == "" {
-		err := respcode.NewUserCenterErr(respcode.ERR, "username/email/mobile must have one")
-		logger.Warnf(ctx, "err: %s", err.Error())
-		resp := respcode.RespError[string](err.Code, err.Msg, "", "")
-		uch.C.JSON(http.StatusOK, resp)
-		return err
+		logger.Warnf(ctx, "err: %s", "username/email/mobile must have one")
+		return respcode.RetError[string](uch.C, respcode.ERR, "username/email/mobile must have one", "", "")
 	}
 	log_key := ""
 	log_val := ""
@@ -61,31 +53,21 @@ func (uch *UserHandler) Login(ctx context.Context) error {
 	user := dbmodel.Users{}
 	ret := db.WithContext(ctx).Select("id,username,email,password,isadmin,status").Where(where_cond, log_val).Find(&user)
 	if ret.Error != nil || ret.RowsAffected == 0 {
-		err := respcode.NewUserCenterErr(respcode.ERR_USER, "username or password error")
 		if ret.Error != nil {
 			logger.Warnf(ctx, "query db users: %s", ret.Error.Error())
 		}
-		logger.Debugf(ctx, "ret.RowsAffected: %d", ret.RowsAffected)
-		resp := respcode.RespError[string](err.Code, err.Msg, "", "")
-		uch.C.JSON(http.StatusOK, resp)
-		return ret.Error
+		return respcode.RetError[string](uch.C, respcode.ERR_USER, "username or password error", "", "")
 	}
 	px := strings.Split(user.Password, "$")
 	pass_enc, _ := ut.CreatePassWithRand(ul.Password, px[1])
 	if pass_enc != user.Password {
-		err := respcode.NewUserCenterErr(respcode.ERR_AUTH, "username or password error")
-		logger.Warnf(ctx, "check pass err: %s", err.Error())
-		resp := respcode.RespError[string](err.Code, err.Msg, "", "")
-		uch.C.JSON(http.StatusOK, resp)
-		return err
+		logger.Warnf(ctx, "username or password error")
+		return respcode.RetError[string](uch.C, respcode.ERR_AUTH, "username or password error", "", "")
 	}
 	if user.Status != respcode.STATUS_OK {
-		//err := errors.New("status error")
-		err := respcode.NewUserCenterErr(respcode.ERR_AUTH, "status error")
-		logger.Warnf(ctx, "check status err: %s", err.Error())
-		resp := respcode.RespError[string](err.Code, err.Msg, "", "")
-		uch.C.JSON(http.StatusOK, resp)
-		return err
+		logger.Warnf(ctx, "status error")
+		return respcode.RetError[string](uch.C, respcode.ERR_AUTH, "status error", "", "")
+
 	}
 	db.WithContext(ctx).Model(&user).Update("logtime", uint64(time.Now().Unix()))
 	//set cookie
@@ -110,13 +92,8 @@ func (uch *UserHandler) Login(ctx context.Context) error {
 	sek, err := se.Update(ctx, uch.Cookie, sdata, time.Duration(3600))
 	if err != nil {
 		logger.Warnf(ctx, "update se err: %s", err.Error())
-		err := respcode.NewUserCenterErr(respcode.ERR_DB, "")
-		resp := respcode.RespError[string](err.Code, err.Msg, "", "")
-		uch.C.JSON(http.StatusOK, resp)
-		return err
+		return respcode.RetError[string](uch.C, respcode.ERR_DB, "update db error", "", "")
 	}
 	uch.C.SetCookie("sid", sek, 3600, "/", "127.0.0.1", false, true)
-	resp := respcode.RespSucc[map[string]interface{}](respcode.OK, userinfo)
-	uch.C.JSON(http.StatusOK, resp)
-	return nil
+	return respcode.RetSucc[map[string]interface{}](uch.C, userinfo)
 }
