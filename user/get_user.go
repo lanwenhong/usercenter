@@ -17,7 +17,7 @@ func (uch *UserHandler) GetUser(ctx context.Context) error {
 	gud := GetUserData{}
 	if err := uch.C.ShouldBindWith(&gud, binding.Query); err != nil {
 		logger.Debugf(ctx, "get_user binding data: %s", err.Error())
-		return respcode.RetError[string](uch.C, respcode.ERR, ut.ValidatErr(mud, err), "", "")
+		return respcode.RetError[string](uch.C, respcode.ERR, ut.ValidatErr(gud, err), "", "")
 	}
 	user, err := uch.getUserBase(ctx, gud.Userid)
 	if err != nil {

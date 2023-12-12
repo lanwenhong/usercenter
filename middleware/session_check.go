@@ -26,6 +26,7 @@ func CheckSession() gin.HandlerFunc {
 			"/uc/v1/user/login_reg_3rd",
 			"/uc/v1/user/get_user",
 			"/uc/v1/user/signin",
+			"/uc/v1/user/query_ids",
 		}
 		c.Set("check_session", "succ")
 		requestID := c.Request.Header.Get("X-Request-ID")

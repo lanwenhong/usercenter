@@ -163,6 +163,9 @@ func UserQuery(c *gin.Context) {
 	case "get_user":
 		logger.Debugf(ctx, "get_user")
 		uh.GetUser(ctx)
+	case "query_ids":
+		logger.Debugf(ctx, "query_ids")
+		uh.QueryIds(ctx)
 
 		/*case "mod":
 		logger.Debugf(ctx, "modify user")
