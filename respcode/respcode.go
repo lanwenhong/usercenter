@@ -91,7 +91,7 @@ func RespError[T string | map[string]interface{}](errcode int, resperr string, r
 
 }
 
-func RespSucc[T string | map[string]interface{}](resperr int, data T) map[string]interface{} {
+func RespSucc[T string | map[string]interface{} | []map[string]interface{}](resperr int, data T) map[string]interface{} {
 
 	resp := map[string]interface{}{
 		"respcd":  OK,
@@ -109,7 +109,7 @@ func RetError[T string | map[string]interface{}](c *gin.Context, errcode int, re
 	return err
 }
 
-func RetSucc[T string | map[string]interface{}](c *gin.Context, data T) error {
+func RetSucc[T string | map[string]interface{} | []map[string]interface{}](c *gin.Context, data T) error {
 	resp := RespSucc[T](OK, data)
 	c.JSON(http.StatusOK, resp)
 	return nil

@@ -98,7 +98,6 @@ func NewPage(ctx context.Context, page int64, page_size int64, pdd *PageDataDb) 
 func (pg *Page) Split(ctx context.Context) error {
 	var err error = nil
 	if pg.Count < 0 {
-		logger.Debugf(ctx, "=====")
 		pg.Count, pg.Pages, err = pg.Pdd.Count(ctx, pg.PageSize)
 		if err != nil {
 			return err

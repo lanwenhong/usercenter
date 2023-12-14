@@ -67,7 +67,7 @@ func (uch *UserHandler) AddGroup(ctx context.Context) error {
 	}
 	for _, k := range keys {
 		v, _ := q_user_group[k]
-		ret_ug[k] = strconv.FormatUint(v.(int64), 10)
+		ret_ug[k] = strconv.FormatUint(uint64(v.(int64)), 10)
 	}
 	return respcode.RetSucc[map[string]interface{}](uch.C, ret_ug)
 }

@@ -156,7 +156,7 @@ func TestModifyUser(t *testing.T) {
 	t.Log(string(v))
 }
 
-func TestAddGroup(t *testing.T) {
+/*func TestAddGroup(t *testing.T) {
 	lconf := &logger.Glogconf{
 		RotateMethod: logger.ROTATE_FILE_DAILY,
 		Stdout:       true,
@@ -188,4 +188,53 @@ func TestAddGroup(t *testing.T) {
 	}
 	t.Log(string(v))
 
+}*/
+
+func TestGroupQlist(t *testing.T) {
+	lconf := &logger.Glogconf{
+		RotateMethod: logger.ROTATE_FILE_DAILY,
+		Stdout:       true,
+		Loglevel:     logger.DEBUG,
+		ColorFull:    true,
+	}
+	logger.Newglog("./", "test.log", "test.log.err", lconf)
+
+	req := map[string]string{
+		"mobile":   "13012340000",
+		"password": "111111",
+	}
+	ctx := context.Background()
+	header := map[string]string{}
+	header["Content-Type"] = "application/x-www-form-urlencoded"
+	c := ghttpclient.QfHttpClientNew(ghttpclient.INTER_PROTO_PUSHAPI, "127.0.0.1:8000", false)
+	v, resp, err := c.Get(ctx, "uc/v1/user/login", 3000, req, header)
+	if err != nil {
+		t.Fatal(err)
+		return
+	}
+	sk := ""
+	for _, c := range resp.Cookies() {
+		t.Log(c.Name)
+		t.Log(c.Value)
+		t.Log(c.Path)
+		t.Log(c.Expires)
+		sk = c.Value
+	}
+	t.Log(string(v))
+
+	header = map[string]string{}
+	header["Content-Type"] = "application/x-www-form-urlencoded"
+	cookie := fmt.Sprintf("%s=%s", "sid", sk)
+	header["Cookie"] = cookie
+	req = map[string]string{
+		"page":      "3",
+		"page_size": "2",
+	}
+	c = ghttpclient.QfHttpClientNew(ghttpclient.INTER_PROTO_PUSHAPI, "127.0.0.1:8000", false)
+	v, resp, err = c.Get(ctx, "uc/v1/group/qlist", 3000, req, header)
+	if err != nil {
+		t.Fatal(err)
+		return
+	}
+	t.Log(string(v))
 }

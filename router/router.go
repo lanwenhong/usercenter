@@ -14,4 +14,6 @@ func Router(r *gin.Engine) {
 	r.POST("/uc/v1/code/verify", tool.CodeVerify)
 	r.POST("/uc/v1/user/:useredit", user.UserOp)
 	r.GET("/uc/v1/user/:userquery", user.UserQuery)
+	r.POST("uc/v1/group/:base_eidit", user.GroupsOp)
+	r.GET("uc/v1/group/:base_query", user.GroupsQuery)
 }
