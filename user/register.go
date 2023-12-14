@@ -3,7 +3,6 @@ package user
 import (
 	"context"
 	"errors"
-	"net/http"
 	"time"
 	"usercenter/dbmodel"
 	"usercenter/respcode"
@@ -26,9 +25,10 @@ func (uch *UserHandler) Register(ctx context.Context) error {
 	uj := UserRejsterData{}
 	if err := uch.C.ShouldBind(&uj); err != nil {
 		logger.Warnf(ctx, "bind data err: %s", err.Error())
-		resp := respcode.RespError[string](respcode.ERR, err.Error(), "参数错误", "")
-		uch.C.JSON(http.StatusOK, resp)
-		return err
+		//resp := respcode.RespError[string](respcode.ERR, err.Error(), "参数错误", "")
+		//uch.C.JSON(http.StatusOK, resp)
+		//return err
+		return respcode.RetError[string](uch.C, respcode.ERR, err.Error(), "参数错误", "")
 	}
 	logger.Debugf(ctx, "email: %s mobile: %s username: %s password: %s", uj.Email, uj.Mobile, uj.Username, uj.Password)
 	db := sruntime.Gsvr.Dbs.OrmPools["usercenter"]
@@ -38,9 +38,9 @@ func (uch *UserHandler) Register(ctx context.Context) error {
 	if ret.Error != nil {
 		//create user
 		logger.Warnf(ctx, "db query %s", ret.Error.Error())
-		resp := respcode.RespError[string](respcode.ERR, ret.Error.Error(), "", "")
-		uch.C.JSON(http.StatusOK, resp)
-		return ret.Error
+		return respcode.RetError[string](uch.C, respcode.ERR, ret.Error.Error(), "", "")
+		//uch.C.JSON(http.StatusOK, resp)
+		//return ret.Error
 	}
 	if ret.RowsAffected == 0 {
 		createid, _ := util.Genid(ctx, db)
@@ -57,12 +57,11 @@ func (uch *UserHandler) Register(ctx context.Context) error {
 		ret := db.WithContext(ctx).Create(&nuser)
 		if ret.Error != nil {
 			logger.Warnf(ctx, "insert db err:%s", ret.Error.Error())
-			resp := respcode.RespError[string](respcode.ERR, ret.Error.Error(), "", "")
-			uch.C.JSON(http.StatusOK, resp)
-			return ret.Error
+			return respcode.RetError[string](uch.C, respcode.ERR, ret.Error.Error(), "", "")
+			//uch.C.JSON(http.StatusOK, resp)
+			//return ret.Error
 		} else {
 			user, _ := uch.getUser(ctx, createid)
-			resp := respcode.RespSucc[map[string]interface{}](respcode.OK, user)
 			if uch.Cookie == "" {
 				sek := util.GenKsuid()
 				se := session.NewSession(sek)
@@ -75,13 +74,14 @@ func (uch *UserHandler) Register(ctx context.Context) error {
 				se.Set(ctx, sek, sdata, time.Duration(3600))
 				uch.C.SetCookie("sid", sek, 3600, "/", "127.0.0.1", false, true)
 			}
-			uch.C.JSON(http.StatusOK, resp)
-			return nil
+			return respcode.RetSucc[map[string]interface{}](uch.C, user)
+			//uch.C.JSON(http.StatusOK, resp)
+			//return nil
 		}
 	}
 	//Found user data
 	err := errors.New("username or email or mobile exist")
-	resp := respcode.RespError[string](respcode.ERR, err.Error(), "", "")
-	uch.C.JSON(http.StatusOK, resp)
+	return respcode.RetError[string](uch.C, respcode.ERR, err.Error(), "", "")
+	//uch.C.JSON(http.StatusOK, resp)
 	return err
 }

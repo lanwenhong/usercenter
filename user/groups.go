@@ -11,9 +11,9 @@ import (
 )
 
 type GroupsAddData struct {
-	Name     string `form:"name" binding:"required" reg_error_info:"组名字格式错误"`
-	Info     string `form:"info" binding:"omitempty" reg_error_info:"组信息格式错误"`
-	Parentid uint64 `form:"parentid" binding:"required" reg_error_info:"父id格式错误"`
+	Name     string  `form:"name" binding:"required" reg_error_info:"组名字格式错误"`
+	Info     string  `form:"info" binding:"omitempty" reg_error_info:"组信息格式错误"`
+	Parentid *uint64 `form:"parentid" binding:"required" reg_error_info:"父id格式错误"`
 }
 
 type GroupsDelData struct {
