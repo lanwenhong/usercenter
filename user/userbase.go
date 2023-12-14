@@ -30,7 +30,8 @@ func (boh *BaseObjectHandler) Insert(ctx context.Context) (map[string]interface{
 		boh.Qdata["ctime"] = uint64(time.Now().Unix())
 		createid, _ := util.Genid(ctx, db)
 		boh.Qdata["id"] = createid
-		ret := db.WithContext(ctx).Create(&boh.Qdata)
+		logger.Debugf(ctx, "insert data: %v", boh.Qdata)
+		ret := db.WithContext(ctx).Table(boh.Table).Create(&boh.Qdata)
 		if ret.Error != nil {
 			logger.Warnf(ctx, "insert: %s", ret.Error.Error())
 			return nil, respcode.ERR_DB
@@ -207,17 +208,21 @@ func (boh *BaseObjectHandler) Post(ctx context.Context) error {
 func (boh *BaseObjectHandler) Get(ctx context.Context) error {
 	//return nil
 	var e_code int = respcode.OK
-	data := []map[string]interface{}{}
+	ldata := []map[string]interface{}{}
+	data := map[string]interface{}{}
 	q_str := boh.C.Param("base_query")
 	switch q_str {
 	case "qlist":
-		data, e_code = boh.GetDataList(ctx)
-		//case "q":
-		//data, e_code = boh.Update(ctx)
+		ldata, e_code = boh.GetDataList(ctx)
+	case "q":
+		data, e_code = boh.GetData(ctx)
 
 	}
 	if e_code != respcode.OK {
 		return respcode.RetError[string](boh.C, e_code, "", "", "")
 	}
-	return respcode.RetSucc[[]map[string]interface{}](boh.C, data)
+	if q_str == "qlist" {
+		return respcode.RetSucc[[]map[string]interface{}](boh.C, ldata)
+	}
+	return respcode.RetSucc[map[string]interface{}](boh.C, data)
 }
