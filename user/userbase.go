@@ -15,11 +15,17 @@ import (
 	"github.com/lanwenhong/lgobase/util"
 )
 
+type BaseFunc func(context.Context) (map[string]interface{}, int)
 type BaseObjectHandler struct {
-	Qdata  map[string]interface{}
-	C      *gin.Context
-	Table  string
-	Cookie string
+	Qdata      map[string]interface{}
+	C          *gin.Context
+	Table      string
+	Cookie     string
+	InsertFunc BaseFunc
+	UpdateFunc BaseFunc
+	DeleteFunc BaseFunc
+	QlistFunc  BaseFunc
+	Qfunc      BaseFunc
 }
 
 type BaseOpFunc func(context.Context) error
@@ -242,7 +248,7 @@ func (boh *BaseObjectHandler) Get(ctx context.Context) error {
 	q_str := boh.C.Param("base_query")
 	switch q_str {
 	case "qlist":
-		data, e_code = boh.GetDataList(ctx)
+		data, e_code = boh.QlistFunc(ctx)
 	case "q":
 		data, e_code = boh.GetData(ctx)
 

@@ -36,6 +36,8 @@ type GroupsDataList struct {
 	Names     []string `form:"names" binding:"omitempty" reg_error_info:"组名字格式错误" convert_db_name:"name"`
 	Parentid  uint64   `form:"parentid" binding:"omitempty" reg_error_info:"父id格式错误"`
 	Parentids []uint64 `form:"parentids" binding:"omitempty" reg_error_info:"Parentids格式错误"`
+	Fctime    string   `form:"fctime" binding:"omitempty" reg_error_info:"ctime起始格式错误"`
+	Tctime    string   `form:"tctime" binding:"omitempty" reg_error_info:"ctime结束格式错误"`
 	Page      int      `form:"page" binding:"required" reg_error_info:"page格式错误"`
 	PageSize  int      `form:"page_size" binding:"required" reg_error_info:"page_size格式错误"`
 }
@@ -48,6 +50,11 @@ type GroupsOpHandler struct {
 	BaseObjectHandler
 	BaseOpFuncIndex map[string]BaseOpFunc
 }
+
+/*func (goh *GroupsOpHandler) GetDataList(ctx context.Context) (map[string]interface{}, int) {
+	ret := map[string]interface{}{}
+	return ret, respcode.OK
+}*/
 
 func (goh *GroupsOpHandler) AddOpFunc(ctx context.Context) error {
 	gad := GroupsAddData{}
@@ -115,6 +122,11 @@ func GroupsOpHandlerNew(c *gin.Context, cookie string) *GroupsOpHandler {
 		"qlist":  gph.QlistOpFunc,
 		"q":      gph.QopFunc,
 	}
+	gph.InsertFunc = gph.Insert
+	gph.UpdateFunc = gph.Update
+	gph.DeleteFunc = gph.Delete
+	gph.QlistFunc = gph.GetDataList
+	gph.Qfunc = gph.GetData
 	return &gph
 }
 
