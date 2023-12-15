@@ -147,19 +147,28 @@ func (boh *BaseObjectHandler) GetData(ctx context.Context) (map[string]interface
 	return nil, respcode.ERR_PARAM
 }
 
-func (boh *BaseObjectHandler) GetDataList(ctx context.Context) ([]map[string]interface{}, int) {
+func (boh *BaseObjectHandler) GetDataList(ctx context.Context) (map[string]interface{}, int) {
 	if boh.Qdata != nil {
 		db := sruntime.Gsvr.Dbs.OrmPools["usercenter"]
 		db = db.WithContext(ctx).Table(boh.Table)
+
+		logger.Debugf(ctx, "%v", boh.Qdata)
 		for k, v := range boh.Qdata {
 			if k == "page" || k == "page_size" {
 				continue
 			}
 			tv := reflect.ValueOf(v)
 			switch tv.Kind() {
-			case reflect.Slice:
-				sql := fmt.Sprintf("%s in ?", k)
-				db = db.Where(sql, v)
+			/*case reflect.Slice:
+			sql := fmt.Sprintf("%s in ?", k)
+			db = db.Where(sql, v)*/
+			case reflect.Map:
+				gmap := v.(map[string]interface{})
+				logger.Debugf(ctx, "%v", gmap)
+				item_name, _ := gmap["convert_db_name"]
+				data, _ := gmap["data"]
+				sql := fmt.Sprintf("%s in ?", item_name)
+				db = db.Where(sql, data)
 			default:
 				sql := fmt.Sprintf("%s = ?", k)
 				db = db.Where(sql, v)
@@ -174,6 +183,14 @@ func (boh *BaseObjectHandler) GetDataList(ctx context.Context) ([]map[string]int
 		it_page_size, _ := boh.Qdata["page_size"]
 		page := it_page.(int)
 		page_size := it_page_size.(int)
+
+		var pages int64 = 0
+		p_div := count % int64(page_size)
+		if p_div == 0 {
+			pages = count / int64(page_size)
+		} else {
+			pages = count/int64(page_size) + 1
+		}
 		logger.Debugf(ctx, "page: %d page_size: %d", page, page_size)
 		db = db.Limit(page_size).Offset((page - 1) * page_size)
 		ddatas := []map[string]interface{}{}
@@ -183,7 +200,16 @@ func (boh *BaseObjectHandler) GetDataList(ctx context.Context) ([]map[string]int
 			return nil, respcode.ERR_DB
 		}
 		re := boh.convertRows(ctx, ddatas)
-		return re, respcode.OK
+
+		all := map[string]interface{}{
+			"page":     page,
+			"pagesize": page_size,
+			"total":    count,
+			"pagenum":  pages,
+			"data":     re,
+		}
+		//return re, respcode.OK
+		return all, respcode.OK
 	}
 	return nil, respcode.ERR_PARAM
 }
@@ -192,12 +218,15 @@ func (boh *BaseObjectHandler) Post(ctx context.Context) error {
 	var e_code int = respcode.OK
 	data := map[string]interface{}{}
 	q_str := boh.C.Param("base_edit")
+	logger.Debugf(ctx, "q_str: %s", q_str)
 	switch q_str {
 	case "add":
 		data, e_code = boh.Insert(ctx)
 	case "mod":
 		data, e_code = boh.Update(ctx)
-
+	case "delete":
+		logger.Debugf(ctx, "delete")
+		data, e_code = boh.Delete(ctx)
 	}
 	if e_code != respcode.OK {
 		return respcode.RetError[string](boh.C, e_code, "", "", "")
@@ -208,12 +237,12 @@ func (boh *BaseObjectHandler) Post(ctx context.Context) error {
 func (boh *BaseObjectHandler) Get(ctx context.Context) error {
 	//return nil
 	var e_code int = respcode.OK
-	ldata := []map[string]interface{}{}
+	//ldata := []map[string]interface{}{}
 	data := map[string]interface{}{}
 	q_str := boh.C.Param("base_query")
 	switch q_str {
 	case "qlist":
-		ldata, e_code = boh.GetDataList(ctx)
+		data, e_code = boh.GetDataList(ctx)
 	case "q":
 		data, e_code = boh.GetData(ctx)
 
@@ -221,8 +250,10 @@ func (boh *BaseObjectHandler) Get(ctx context.Context) error {
 	if e_code != respcode.OK {
 		return respcode.RetError[string](boh.C, e_code, "", "", "")
 	}
-	if q_str == "qlist" {
+	/*if q_str == "qlist" {
 		return respcode.RetSucc[[]map[string]interface{}](boh.C, ldata)
 	}
+	return respcode.RetSucc[map[string]interface{}](boh.C, data)*/
 	return respcode.RetSucc[map[string]interface{}](boh.C, data)
+
 }

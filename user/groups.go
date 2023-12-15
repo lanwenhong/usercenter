@@ -18,6 +18,7 @@ type GroupsAddData struct {
 
 type GroupsDelData struct {
 	Id uint64 `form:"id" binding:"required" reg_error_info:"id格式错误"`
+	//Ids []uint64 `form:"ids" binding:"omitempty" reg_error_info:"id格式错误" convert_db_name:"id"`
 }
 
 type GroupsModData struct {
@@ -29,9 +30,10 @@ type GroupsModData struct {
 
 type GroupsDataList struct {
 	Id        uint64   `form:"id" binding:"omitempty" reg_error_info:"id格式错误"`
-	Ids       []uint64 `form:"ids" binding:"omitempty" reg_error_info:"ids格式错误"`
+	Ids       []uint64 `form:"ids" binding:"omitempty" reg_error_info:"ids格式错误" convert_db_name:"id"`
 	Info      string   `form:"info" binding:"omitempty" reg_error_info:"组信息格式错误"`
 	Name      string   `form:"name" binding:"omitempty" reg_error_info:"组名字格式错误"`
+	Names     []string `form:"names" binding:"omitempty" reg_error_info:"组名字格式错误" convert_db_name:"name"`
 	Parentid  uint64   `form:"parentid" binding:"omitempty" reg_error_info:"父id格式错误"`
 	Parentids []uint64 `form:"parentids" binding:"omitempty" reg_error_info:"Parentids格式错误"`
 	Page      int      `form:"page" binding:"required" reg_error_info:"page格式错误"`
@@ -64,6 +66,7 @@ func (goh *GroupsOpHandler) DelOpFunc(ctx context.Context) error {
 		return respcode.RetError[string](goh.C, respcode.ERR, ut.ValidatErr(gdd, err), "", "")
 	}
 	goh.Qdata, _ = ut.Stru2Map(ctx, gdd)
+	logger.Debugf(ctx, "%v", goh.Qdata)
 	return goh.Post(ctx)
 }
 
@@ -110,7 +113,7 @@ func GroupsOpHandlerNew(c *gin.Context, cookie string) *GroupsOpHandler {
 		"mod":    gph.ModOpFunc,
 		"delete": gph.DelOpFunc,
 		"qlist":  gph.QlistOpFunc,
-		"q":      gph.QlistOpFunc,
+		"q":      gph.QopFunc,
 	}
 	return &gph
 }
