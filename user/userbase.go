@@ -55,65 +55,43 @@ func (boh *BaseObjectHandler) Update(ctx context.Context) (map[string]interface{
 		db := sruntime.Gsvr.Dbs.OrmPools["usercenter"]
 		indata := map[string]interface{}{}
 		for k, v := range boh.Qdata {
-			if k != "id" && k != "ids" && k != "ctime" {
+			if k != "id" && k != "ctime" {
 				indata[k] = v
 			}
 		}
 		indata["utime"] = uint64(time.Now().Unix())
-		if xid, ok := boh.Qdata["id"]; ok {
-			id := xid.(uint64)
-			ret := db.WithContext(ctx).Table(boh.Table).Where("id = (?)", id).Updates(indata)
+
+		id, _ := boh.Qdata["id"]
+		switch id.(type) {
+		case uint64:
+			gid := id.(uint64)
+			ret := db.WithContext(ctx).Table(boh.Table).Where("id = ?", gid).Updates(indata)
 			if ret.Error != nil {
 				logger.Debugf(ctx, "update: %s", ret.Error.Error())
 				return nil, respcode.ERR_DB
 			}
-			indata["id"] = strconv.FormatUint(id, 10)
+			indata["id"] = strconv.FormatUint(gid, 10)
 			indata["_rows"] = ret.RowsAffected
 			return indata, respcode.OK
-		}
-		if xids, ok := boh.Qdata["ids"]; ok {
-			m_xids := xids.(map[string]interface{})
-			dd, _ := m_xids["data"]
-			ret := db.WithContext(ctx).Table(boh.Table).Where("id in (?)", dd).Updates(indata)
+		case []uint64:
+			gids := id.([]uint64)
+			logger.Debugf(ctx, "%v", indata)
+			ret := db.WithContext(ctx).Table(boh.Table).Where("id in (?)", gids).Updates(indata)
 			if ret.Error != nil {
 				logger.Debugf(ctx, "update: %s", ret.Error.Error())
 				return nil, respcode.ERR_DB
 			}
 			ids := []string{}
-			for _, id := range dd.([]uint64) {
+			for _, id := range gids {
 				sid := strconv.FormatUint(id, 10)
 				ids = append(ids, sid)
 			}
 			indata["_rows"] = ret.RowsAffected
 			indata["ids"] = ids
 			return indata, respcode.OK
-		}
-		return nil, respcode.ERR_PARAM
-		/*xid, _ := boh.Qdata["id"]
-		xt := reflect.ValueOf(xid)
-		delete(boh.Qdata, "id")
-		switch xt.Kind() {
-		case reflect.Slice:
-			xids := xid.([]uint64)
-			ret := db.WithContext(ctx).Table(boh.Table).Where("id in (?)", xids).Updates(boh.Qdata)
-			if ret.Error != nil {
-				logger.Debugf(ctx, "update: %s", ret.Error.Error())
-				return nil, respcode.ERR_DB
-			}
-			boh.Qdata["_rows"] = ret.RowsAffected
-		case reflect.Uint64:
-			sid := xid.(uint64)
-			ret := db.WithContext(ctx).Table(boh.Table).Where("id = ?", sid).Updates(boh.Qdata)
-			if ret.Error != nil {
-				logger.Debugf(ctx, "update: %s", ret.Error.Error())
-				return nil, respcode.ERR_DB
-			}
-			boh.Qdata["id"] = strconv.FormatUint(sid, 10)
-		default:
-			return nil, respcode.ERR_PARAM
 
 		}
-		return boh.Qdata, respcode.OK*/
+		return nil, respcode.ERR_PARAM
 	}
 	return nil, respcode.ERR_PARAM
 }
@@ -201,16 +179,15 @@ func (boh *BaseObjectHandler) GetDataList(ctx context.Context) (map[string]inter
 			}
 			tv := reflect.ValueOf(v)
 			switch tv.Kind() {
-			/*case reflect.Slice:
-			sql := fmt.Sprintf("%s in ?", k)
-			db = db.Where(sql, v)*/
-			case reflect.Map:
-				gmap := v.(map[string]interface{})
-				logger.Debugf(ctx, "%v", gmap)
-				item_name, _ := gmap["convert_db_name"]
-				data, _ := gmap["data"]
-				sql := fmt.Sprintf("%s in ?", item_name)
-				db = db.Where(sql, data)
+			case reflect.Slice:
+				slen := tv.Len()
+				if slen == 1 {
+					sql := fmt.Sprintf("%s=?", k)
+					db = db.Where(sql, tv.Index(0).Interface())
+				} else {
+					sql := fmt.Sprintf("%s in ?", k)
+					db = db.Where(sql, v)
+				}
 			default:
 				sql := fmt.Sprintf("%s = ?", k)
 				db = db.Where(sql, v)
