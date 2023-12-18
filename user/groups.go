@@ -2,6 +2,7 @@ package user
 
 import (
 	"context"
+	"time"
 	"usercenter/respcode"
 	ut "usercenter/util"
 
@@ -22,24 +23,25 @@ type GroupsDelData struct {
 }
 
 type GroupsModData struct {
-	Id       uint64 `form:"id" binding:"required" reg_error_info:"id格式错误"`
-	Info     string `form:"info" binding:"omitempty" reg_error_info:"组信息格式错误"`
-	Name     string `form:"name" binding:"omitempty" reg_error_info:"组名字格式错误"`
-	Parentid uint64 `form:"parentid" binding:"omitempty" reg_error_info:"父id格式错误"`
+	Id       uint64   `form:"id" binding:"omitempty" reg_error_info:"id格式错误"`
+	Ids      []uint64 `form:"ids" binding:"omitempty" reg_error_info:"ids格式错误" convert_db_name:"id"`
+	Info     string   `form:"info" binding:"omitempty" reg_error_info:"组信息格式错误"`
+	Name     string   `form:"name" binding:"omitempty" reg_error_info:"组名字格式错误"`
+	Parentid uint64   `form:"parentid" binding:"omitempty" reg_error_info:"父id格式错误"`
 }
 
 type GroupsDataList struct {
-	Id        uint64   `form:"id" binding:"omitempty" reg_error_info:"id格式错误"`
-	Ids       []uint64 `form:"ids" binding:"omitempty" reg_error_info:"ids格式错误" convert_db_name:"id"`
-	Info      string   `form:"info" binding:"omitempty" reg_error_info:"组信息格式错误"`
-	Name      string   `form:"name" binding:"omitempty" reg_error_info:"组名字格式错误"`
-	Names     []string `form:"names" binding:"omitempty" reg_error_info:"组名字格式错误" convert_db_name:"name"`
-	Parentid  uint64   `form:"parentid" binding:"omitempty" reg_error_info:"父id格式错误"`
-	Parentids []uint64 `form:"parentids" binding:"omitempty" reg_error_info:"Parentids格式错误"`
-	Fctime    string   `form:"fctime" binding:"omitempty" reg_error_info:"ctime起始格式错误"`
-	Tctime    string   `form:"tctime" binding:"omitempty" reg_error_info:"ctime结束格式错误"`
-	Page      int      `form:"page" binding:"required" reg_error_info:"page格式错误"`
-	PageSize  int      `form:"page_size" binding:"required" reg_error_info:"page_size格式错误"`
+	Id        uint64    `form:"id" binding:"omitempty" reg_error_info:"id格式错误"`
+	Ids       []uint64  `form:"ids" binding:"omitempty" reg_error_info:"ids格式错误" convert_db_name:"id"`
+	Info      string    `form:"info" binding:"omitempty" reg_error_info:"组信息格式错误"`
+	Name      string    `form:"name" binding:"omitempty" reg_error_info:"组名字格式错误"`
+	Names     []string  `form:"names" binding:"omitempty" reg_error_info:"组名字格式错误" convert_db_name:"name"`
+	Parentid  uint64    `form:"parentid" binding:"omitempty" reg_error_info:"父id格式错误"`
+	Parentids []uint64  `form:"parentids" binding:"omitempty" reg_error_info:"Parentids格式错误"`
+	Fctime    time.Time `form:"fctime" binding:"omitempty" time_format:"2006-01-02 15:04:05" reg_error_info:"ctime起始格式错误"`
+	Tctime    time.Time `form:"tctime" binding:"omitempty" time_format:"2006-01-02 15:04:05" reg_error_info:"ctime结束格式错误"`
+	Page      int       `form:"page" binding:"required" reg_error_info:"page格式错误"`
+	PageSize  int       `form:"page_size" binding:"required" reg_error_info:"page_size格式错误"`
 }
 
 type GroupData struct {
@@ -50,11 +52,6 @@ type GroupsOpHandler struct {
 	BaseObjectHandler
 	BaseOpFuncIndex map[string]BaseOpFunc
 }
-
-/*func (goh *GroupsOpHandler) GetDataList(ctx context.Context) (map[string]interface{}, int) {
-	ret := map[string]interface{}{}
-	return ret, respcode.OK
-}*/
 
 func (goh *GroupsOpHandler) AddOpFunc(ctx context.Context) error {
 	gad := GroupsAddData{}
