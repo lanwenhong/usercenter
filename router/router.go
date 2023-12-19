@@ -16,4 +16,6 @@ func Router(r *gin.Engine) {
 	r.GET("/uc/v1/user/:userquery", user.UserQuery)
 	r.POST("uc/v1/group/:base_edit", user.GroupsOp)
 	r.GET("uc/v1/group/:base_query", user.GroupsQuery)
+	r.POST("uc/v1/perm/:base_edit", user.PermsOp)
+	r.GET("uc/v1/perm/:base_query", user.PermsQuery)
 }

@@ -15,6 +15,14 @@ import (
 	"github.com/lanwenhong/lgobase/util"
 )
 
+/*const (
+	QdataStru      = 0
+	ModDataWithIds = 1
+	ModDataWithId  = 2
+	DelDataWithId  = 3
+	AddData        = 4
+)*/
+
 type BaseFunc func(context.Context) (map[string]interface{}, int)
 type BaseObjectHandler struct {
 	Qdata      map[string]interface{}
@@ -29,6 +37,13 @@ type BaseObjectHandler struct {
 }
 
 type BaseOpFunc func(context.Context) error
+
+/*type BaseStruInit func(context.Context) interface{}
+type BaseOpHandler struct {
+	BaseObjectHandler
+	BaseOpFuncIndex map[string]BaseOpFunc
+	BsInit          BaseOpFunc
+}*/
 
 func (boh *BaseObjectHandler) Insert(ctx context.Context) (map[string]interface{}, int) {
 	if boh.Qdata != nil {
@@ -291,3 +306,24 @@ func (boh *BaseObjectHandler) Get(ctx context.Context) error {
 	return respcode.RetSucc[map[string]interface{}](boh.C, data)
 
 }
+
+/*func BaseOpHandlerNew(c *gin.Context, cookie string, table string) *BaseOpHandler {
+	boh := BaseOpHandler{}
+	boh.C = c
+	boh.Table = table
+
+	boh.BaseOpFuncIndex = map[string]BaseOpFunc{
+		"add":    boh.AddOpFunc,
+		"mod":    boh.ModOpFunc,
+		"delete": boh.DelOpFunc,
+		"qlist":  boh.QlistOpFunc,
+		"q":      boh.QopFunc,
+	}
+
+	boh.InsertFunc = boh.Insert
+	boh.UpdateFunc = boh.Update
+	boh.DeleteFunc = boh.Delete
+	boh.QlistFunc = boh.GetDataList
+	boh.Qfunc = boh.GetData
+	return &boh
+}*/

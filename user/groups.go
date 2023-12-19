@@ -109,6 +109,7 @@ func (goh *GroupsOpHandler) ModOpFunc(ctx context.Context) error {
 
 func (goh *GroupsOpHandler) QlistOpFunc(ctx context.Context) error {
 	gmpdl := GroupsDataList{}
+	//var gmpdl interface{} = GroupsDataList{}
 	if err := goh.C.ShouldBindWith(&gmpdl, binding.Query); err != nil {
 		logger.Warnf(ctx, "qlist binding data: %s", err.Error())
 		return respcode.RetError[string](goh.C, respcode.ERR, ut.ValidatErr(gmpdl, err), "", "")
