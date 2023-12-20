@@ -2,6 +2,7 @@ package middleware
 
 import (
 	"context"
+	"usercenter/respcode"
 
 	"github.com/gin-gonic/gin"
 	"github.com/lanwenhong/lgobase/logger"
@@ -29,7 +30,7 @@ func CheckSession() gin.HandlerFunc {
 			"/uc/v1/user/query_ids",
 			//"/uc/v1/group/qlist",
 		}
-		c.Set("check_session", "succ")
+		//c.Set("check_session", "succ")
 		requestID := c.Request.Header.Get("X-Request-ID")
 		ctx := context.WithValue(context.Background(), "trace_id", requestID)
 		client_cookie, err := c.Cookie("sid")
@@ -39,7 +40,10 @@ func CheckSession() gin.HandlerFunc {
 			c.Set("have_se", "")
 			if !FindPath(no_need, c.Request.URL.Path) {
 				logger.Debugf(ctx, "check session err")
-				c.Set("check_session", "fail")
+				//c.Set("check_session", "fail")
+				respcode.RetError[string](c, respcode.ERR, "session check error", "", "")
+				c.Abort()
+				return
 				//resp := respcode.RespError[string](respcode.ERR, "session check error", "", "")
 				//c.JSON(http.StatusOK, resp)
 				//return

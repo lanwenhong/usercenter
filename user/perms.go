@@ -43,13 +43,13 @@ type PermsDataList struct {
 	PageSize int       `form:"page_size" binding:"required" reg_error_info:"page_size格式错误"`
 }
 
+type PermData struct {
+	Id uint64 `form:"id" binding:"omitempty" reg_error_info:"id格式错误"`
+}
+
 type PermsOpHandler struct {
 	BaseObjectHandler
 	BaseOpFuncIndex map[string]BaseOpFunc
-}
-
-type PermData struct {
-	Id uint64 `form:"id" binding:"omitempty" reg_error_info:"id格式错误"`
 }
 
 func (poh *PermsOpHandler) AddOpFunc(ctx context.Context) error {
@@ -144,11 +144,11 @@ func PermsOp(c *gin.Context) {
 	ctx := context.WithValue(context.Background(), "trace_id", requestID)
 	cookie, _ := c.Get("have_se")
 	grouped := c.Param("base_edit")
-	se_check, _ := c.Get("check_session")
+	/*se_check, _ := c.Get("check_session")
 	if se_check.(string) == "fail" {
 		respcode.RetError[string](c, respcode.ERR, "session check error", "", "")
 		return
-	}
+	}*/
 	poh := PermsOpHandlerNew(c, cookie.(string))
 	logger.Debugf(ctx, "grouped: %s", grouped)
 	if op, ok := poh.BaseOpFuncIndex[grouped]; ok {
@@ -164,11 +164,11 @@ func PermsQuery(c *gin.Context) {
 	cookie, _ := c.Get("have_se")
 	grouped := c.Param("base_query")
 	logger.Debugf(ctx, "grouped: %s", grouped)
-	se_check, _ := c.Get("check_session")
+	/*se_check, _ := c.Get("check_session")
 	if se_check.(string) == "fail" {
 		respcode.RetError[string](c, respcode.ERR, "session check error", "", "")
 		return
-	}
+	}*/
 	poh := PermsOpHandlerNew(c, cookie.(string))
 	if op, ok := poh.BaseOpFuncIndex[grouped]; ok {
 		op(ctx)

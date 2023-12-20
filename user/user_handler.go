@@ -2,8 +2,6 @@ package user
 
 import (
 	"context"
-	"net/http"
-	"usercenter/respcode"
 	"usercenter/sruntime"
 
 	"github.com/gin-gonic/gin"
@@ -94,14 +92,22 @@ func (uch *UserHandler) getUser(ctx context.Context, id uint64) (map[string]inte
 			for _, v := range qperms {
 				allperm_id = append(allperm_id, v["id"].(int64))
 			}
+			logger.Debugf(ctx, "allperm_id: %v", allperm_id)
+			logger.Debugf(ctx, "allperm: %v", retuser["allperm"])
+			rows := retuser["allperm"].([]map[string]interface{})
 			for _, row := range retperms {
-				//if row["id"]
-				find := uch.find(allperm_id, row["id"].(int64))
+				iid, _ := row["id"]
+				id := iid.(int64)
+				logger.Debugf(ctx, "id: %d", id)
+				find := uch.find(allperm_id, id)
 				if !find {
-					rows := retuser["allperm"].([]map[string]interface{})
 					rows = append(rows, row)
 				}
 			}
+			retuser["allperm"] = rows
+			logger.Debugf(ctx, "afeter update allperm: %v", rows)
+			logger.Debugf(ctx, "afeter update allperm: %v", retuser["allperm"])
+
 		}
 	}
 	return retuser, nil
@@ -118,12 +124,12 @@ func UserOp(c *gin.Context) {
 	cookie, _ := c.Get("have_se")
 
 	useredit := c.Param("useredit")
-	se_check, _ := c.Get("check_session")
+	/*se_check, _ := c.Get("check_session")
 	if se_check.(string) == "fail" {
 		resp := respcode.RespError[string](respcode.ERR, "session check error", "", "")
 		c.JSON(http.StatusOK, resp)
 		return
-	}
+	}*/
 
 	logger.Debugf(ctx, "op: %s", useredit)
 	uh := UserHandler{
@@ -145,12 +151,12 @@ func UserQuery(c *gin.Context) {
 	ctx := context.WithValue(context.Background(), "trace_id", requestID)
 	cookie, _ := c.Get("have_se")
 	userquery := c.Param("userquery")
-	se_check, _ := c.Get("check_session")
+	/*se_check, _ := c.Get("check_session")
 	if se_check.(string) == "fail" {
 		resp := respcode.RespError[string](respcode.ERR, "session check error", "", "")
 		c.JSON(http.StatusOK, resp)
 		return
-	}
+	}*/
 	logger.Debugf(ctx, "op: %s", userquery)
 	uh := UserHandler{
 		C:      c,
