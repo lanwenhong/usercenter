@@ -140,7 +140,7 @@ func GroupsOpHandlerNew(c *gin.Context, cookie string) *GroupsOpHandler {
 		"add":    gph.AddOpFunc,
 		"mod":    gph.ModOpFunc,
 		"delete": gph.DelOpFunc,
-		"qlist":  gph.QlistOpFunc,
+		"list":   gph.QlistOpFunc,
 		"q":      gph.QopFunc,
 	}
 	gph.InsertFunc = gph.Insert

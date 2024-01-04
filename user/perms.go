@@ -128,7 +128,7 @@ func PermsOpHandlerNew(c *gin.Context, cookie string) *PermsOpHandler {
 		"add":    poh.AddOpFunc,
 		"mod":    poh.ModOpFunc,
 		"delete": poh.DelOpFunc,
-		"qlist":  poh.QlistOpFunc,
+		"list":   poh.QlistOpFunc,
 		"q":      poh.QopFunc,
 	}
 	poh.InsertFunc = poh.Insert

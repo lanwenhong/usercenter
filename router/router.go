@@ -25,4 +25,7 @@ func Router(r *gin.Engine) {
 		"perm_mod",
 	}
 	r.POST("uc/v1/perm/:base_edit", middleware.CheckPerms(perms), user.PermsOp)
+
+	r.GET("/uc/v1/role/:base_query", user.RoleQuery)
+	r.POST("/uc/v1/role/:base_edit", user.RoleOp)
 }

@@ -290,7 +290,7 @@ func (boh *BaseObjectHandler) Get(ctx context.Context) error {
 	data := map[string]interface{}{}
 	q_str := boh.C.Param("base_query")
 	switch q_str {
-	case "qlist":
+	case "list":
 		data, e_code = boh.QlistFunc(ctx)
 	case "q":
 		data, e_code = boh.GetData(ctx)
