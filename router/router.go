@@ -9,6 +9,14 @@ import (
 )
 
 func Router(r *gin.Engine) {
+
+	perms_view := []string{
+		"perm_view",
+	}
+	perms_mod := []string{
+		"perm_mod",
+	}
+
 	r.GET("/uc/v1/code/image", tool.GetImageCode)
 	r.POST("/uc/v1/code/image", tool.GetImageCode)
 	r.GET("/uc/v1/code/verify", tool.CodeVerify)
@@ -17,15 +25,9 @@ func Router(r *gin.Engine) {
 	r.GET("/uc/v1/user/:userquery", user.UserQuery)
 	r.POST("uc/v1/group/:base_edit", user.GroupsOp)
 	r.GET("uc/v1/group/:base_query", user.GroupsQuery)
-	perms := []string{
-		"perm_view",
-	}
-	r.GET("uc/v1/perm/:base_query", middleware.CheckPerms(perms), user.PermsQuery)
-	perms = []string{
-		"perm_mod",
-	}
-	r.POST("uc/v1/perm/:base_edit", middleware.CheckPerms(perms), user.PermsOp)
+	r.GET("uc/v1/perm/:base_query", middleware.CheckPerms(perms_view), user.PermsQuery)
+	r.POST("uc/v1/perm/:base_edit", middleware.CheckPerms(perms_mod), user.PermsOp)
 
-	r.GET("/uc/v1/role/:base_query", user.RoleQuery)
-	r.POST("/uc/v1/role/:base_edit", user.RoleOp)
+	r.GET("/uc/v1/role/:base_query", middleware.CheckPerms(perms_view), user.RoleQuery)
+	r.POST("/uc/v1/role/:base_edit", middleware.CheckPerms(perms_mod), user.RoleOp)
 }
