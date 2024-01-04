@@ -2,7 +2,6 @@ package user
 
 import (
 	"context"
-	"fmt"
 	"strconv"
 	"time"
 	"usercenter/dbmodel"
@@ -68,6 +67,41 @@ type RolesOpHandler struct {
 	BaseOpFuncIndex map[string]BaseOpFunc
 }
 
+func (roh *RolesOpHandler) GetData(ctx context.Context) (map[string]interface{}, int) {
+	retdata, code := roh.BaseObjectHandler.GetData(ctx)
+	if code != respcode.OK {
+		return retdata, code
+	}
+	retdic := []map[string]interface{}{}
+	db := sruntime.Gsvr.Dbs.OrmPools["usercenter"]
+	id, _ := roh.Qdata["id"]
+	sql := "select p.id as id,p.name as name,p.info as info from perms p, role_perm rp where rp.roleid= ? and rp.permid=p.id"
+	ret := db.WithContext(ctx).Raw(sql, id).Scan(&retdic)
+	if ret.Error != nil {
+		logger.Warnf(ctx, "insert: %s", ret.Error.Error())
+		return nil, respcode.ERR_DB
+	}
+	for _, row := range retdic {
+		delete(row, "roleid")
+	}
+	c_retdic := roh.convertRows(ctx, retdic)
+	logger.Debugf(ctx, "retdic: %v", retdic)
+	retdata["perm"] = c_retdic
+
+	return retdata, respcode.OK
+}
+
+func (roh *RolesOpHandler) QopFunc(ctx context.Context) error {
+	rd := RoleData{}
+	if err := roh.C.ShouldBindWith(&rd, binding.Query); err != nil {
+		logger.Warnf(ctx, "q binding data: %s", err.Error())
+		return respcode.RetError[string](roh.C, respcode.ERR, ut.ValidatErr(rd, err), "", "")
+	}
+	logger.Debugf(ctx, "q handler")
+	roh.Qdata, _ = ut.Stru2Map(ctx, rd)
+	return roh.Get(ctx)
+}
+
 func (roh *RolesOpHandler) GetDataList(ctx context.Context) (map[string]interface{}, int) {
 	retdata, code := roh.BaseObjectHandler.GetDataList(ctx)
 	if code != respcode.OK {
@@ -94,11 +128,14 @@ func (roh *RolesOpHandler) GetDataList(ctx context.Context) (map[string]interfac
 		return nil, respcode.ERR_DB
 	}
 	logger.Debugf(ctx, "retdic: %v", retdic)
-	if len(retdic) > 0 {
+	c_retdic := roh.convertRows(ctx, retdic)
+
+	if len(c_retdic) > 0 {
 		roledict := map[string][]map[string]interface{}{}
-		for _, row := range retdic {
-			id, _ := row["roleid"]
-			s_id := fmt.Sprintf("%d", id)
+		for _, row := range c_retdic {
+			roleid, _ := row["roleid"]
+			s_id := roleid.(string)
+			//s_id := fmt.Sprintf("%d", id)
 			delete(row, "roleid")
 			perm, ok := roledict[s_id]
 			if !ok {
@@ -258,11 +295,11 @@ func RolesOpHandlerNew(c *gin.Context, cookie string) *RolesOpHandler {
 	roh.Table = "roles"
 
 	roh.BaseOpFuncIndex = map[string]BaseOpFunc{
-		"add":    roh.AddOpFunc,
-		"mod":    roh.ModOpFunc,
-		"delete": roh.DelOpFunc,
-		"list":   roh.QlistOpFunc,
-		//"q":       roh.QopFunc,
+		"add":     roh.AddOpFunc,
+		"mod":     roh.ModOpFunc,
+		"delete":  roh.DelOpFunc,
+		"list":    roh.QlistOpFunc,
+		"q":       roh.QopFunc,
 		"addperm": roh.AddPermsFunc,
 		"delperm": roh.DelRolePermFunc,
 	}

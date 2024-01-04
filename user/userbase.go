@@ -293,7 +293,7 @@ func (boh *BaseObjectHandler) Get(ctx context.Context) error {
 	case "list":
 		data, e_code = boh.QlistFunc(ctx)
 	case "q":
-		data, e_code = boh.GetData(ctx)
+		data, e_code = boh.Qfunc(ctx)
 
 	}
 	if e_code != respcode.OK {
